@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+</head>
+<body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+
+  <!--     1.导入vue.js -->
+  <script src="../vue.js"></script>
+</head>
+<body>
+<div id="app">
+  <ct1 v-for="item in items" v-bind:lhr="item">
+
+  </ct1>
+</div>
+
+<script>
+
+  Vue.component("ct1",{
+    props:['lhr'],
+    template:'<h1>{{lhr}}</h1>'
+  });
+  var vm=new Vue({
+    el:"#app",
+    data:{
+      items:['it1','it2','例子3']
+    } ,
+  });
+
+</script>
+</body>
+
+</html>
+</body>
+</html>

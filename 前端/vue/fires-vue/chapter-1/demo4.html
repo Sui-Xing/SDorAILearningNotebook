@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+
+
+	<script src="../vue.js"></script>
+	<script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.1/axios.min.js"></script>
+</head>
+<body>
+<div id="vue1">
+	名字<b>{{jsoninfo.name}}</b>
+	链接<a v-bind:href="jsoninfo.url">
+	dianji
+	</a>
+
+</div>
+
+<script>
+    var vm=new Vue({
+        el:"#vue1",
+        data(){
+            return {
+
+                jsoninfo:{
+                    name:null,
+                    age:null,
+                    url:null
+
+                }
+
+
+            }
+        },
+        mounted(){
+          axios.get('testjson.json').then(response=>this.jsoninfo=response.data)
+        }
+    });
+
+
+
+
+</script>
+
+</body>
+</html>
