@@ -1,0 +1,1 @@
+(()=>{var t={645:(t,e)=>{e.sqyHi=function(){document.write("<h1>测试webpack</h1>>")},e.sqyHi1=function(){document.write("<h1>测试webpack</h1>>")},e.sqyHi2=function(){document.write("<h1>测试webpack</h1>>")}}},e={};(function r(i){var n=e[i];if(void 0!==n)return n.exports;var o=e[i]={exports:{}};return t[i](o,o.exports,r),o.exports})(645).sqyHi()})();

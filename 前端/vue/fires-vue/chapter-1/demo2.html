@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+
+	<!--     1.导入vue.js -->
+	<script src="../vue.js"></script>
+</head>
+<body>
+<div id="app">
+	{{message}}
+	<li v-bind:abc="message">
+		{{abc}}
+
+	</li>
+	</br>
+<!-- 	<a v-for="item in which"> -->
+		<input  id="i1" type="radio" name="r1" value="A" v-model="which">A
+		<input  type="radio" name="r1" value="B" v-model="which">B
+<!-- 	</a> -->
+
+	</br>
+	<b>{{which}}</b>
+	</br>
+
+<!-- 	<select v-model="which"> -->
+<!-- 		<option>A</option> -->
+<!-- 		<option>B</option> -->
+<!-- 		<option>C</option> -->
+<!-- 	</select> -->
+<!-- 	<b>{{which}}</b> -->
+
+<!-- 	</br> -->
+<!-- 	<b>{{which}}</b> -->
+</div>
+
+<script>
+    var vm=new Vue({
+        el:"#app",
+        data:{
+            message:"hello,vue!",
+	        check:true,
+	        which:"A",
+            items:[{messageli:"狂神说java"},
+                {messageli:"测试2"}]
+        } ,
+
+    });
+    var l=document.getElementById('i1').setAttribute("checked","true");
+</script>
+</body>
+
+</html>
