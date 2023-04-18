@@ -1,14 +1,4 @@
 <!--ts-->
-* [Software-development](#software-development)
-* [算法文档](#算法文档)
-* [MySql](#mysql)
-* [JVM](#jvm)
-* [JAVA](#java)
-* [SSM框架文档](#ssm框架文档)
-
-<!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: runner, at: Tue Apr 18 13:06:49 UTC 2023 -->
-
 <!--te-->
 
 # Software-development
