@@ -4,18 +4,18 @@
 
 # 算法文档
 
-[左神算法笔记](./算法/算法题笔记.md)
+[左神算法笔记](https://github.com/Sui-Xing/Software-development/blob/main/%E7%AE%97%E6%B3%95/%E7%AE%97%E6%B3%95%E9%A2%98%E7%AC%94%E8%AE%B0.md)
 
 # MySql
-[MySQL基础](./后端/mysql基础.md)
+[MySQL基础](https://github.com/Sui-Xing/Software-development/blob/main/%E5%90%8E%E7%AB%AF/mysql%E5%9F%BA%E7%A1%80.md)
 
-[MySQL调优](./后端/mysql调优.md)
+[MySQL调优](https://github.com/Sui-Xing/Software-development/blob/main/%E5%90%8E%E7%AB%AF/mysql%E8%B0%83%E4%BC%98.md)
 
 # JVM
-[JVM基础](./后端/jvm基础.md)
+[JVM基础](https://github.com/Sui-Xing/Software-development/blob/main/%E5%90%8E%E7%AB%AF/JVM%E5%9F%BA%E7%A1%80.md)
 
 # JAVA
-[JAVA基础](./后端/Java/java基础.md)
+[JAVA基础](https://github.com/Sui-Xing/Software-development/blob/main/%E5%90%8E%E7%AB%AF/Java/java%E5%9F%BA%E7%A1%80.md)
 
 # SSM框架文档
-[mybatis学习笔记](./后端/SSM/Mybatis学习笔记.md)
+[mybatis学习笔记](https://github.com/Sui-Xing/Software-development/blob/main/%E5%90%8E%E7%AB%AF/SSM/Mybatis%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.md)
