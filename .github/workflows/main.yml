@@ -1,10 +1,10 @@
 on:
   push:
     branches: [main]
-    paths: -'**/*.md'
+    paths: -'**/**'
   pull_request:
     branches: [main]
-    paths: -'**/*.md'
+    paths: -'**/**'
     
 
 jobs:
