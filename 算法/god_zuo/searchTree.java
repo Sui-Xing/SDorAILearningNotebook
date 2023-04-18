@@ -11,7 +11,7 @@ public class searchTree {
         head.right=t4;
         t1.left=t5;
 
-        System.out.println(isBst(head));
+        System.out.println("该二叉树是否为二叉搜索树："+isBst(head));
 
 
     }
