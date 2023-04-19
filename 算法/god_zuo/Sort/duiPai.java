@@ -1,3 +1,5 @@
+package Sort;
+
 public class duiPai {
     public static void main(String[] args) {
         int[] arr={3,8,6,5,9,4,6,7,20,1};

@@ -1,3 +1,7 @@
+package Tree;
+
+import Tree.Tree;
+
 public class searchTree {
     public static void main(String[] args) {
 

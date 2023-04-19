@@ -1,3 +1,5 @@
+package Tree;
+
 public class Tree {
     Tree left=null;
     Tree right=null;

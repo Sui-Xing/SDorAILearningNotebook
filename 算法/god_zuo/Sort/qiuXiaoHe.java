@@ -1,3 +1,5 @@
+package Sort;
+
 public class qiuXiaoHe {
     public static void main(String[] args) {
         int arr[]={5,3,6,2,9};
