@@ -315,7 +315,7 @@ Java SE 8中没有引入新的注解类型，但是它扩展了注解的用途�
 
 
 
-# HashMap原理
+# 七、HashMap原理
 
 ![](http://fastly.jsdelivr.net/gh/Sui-Xing/Figurebed//img/2023/04/18/20230418114738.png)
 
@@ -335,7 +335,7 @@ hashcode1与hashcode2在oldthreshold大小中 hash值是一样的，因此在一
 
     
 
-# 常量
+## 常量
 
 ```java
 /**
@@ -396,7 +396,7 @@ static final int MIN_TREEIFY_CAPACITY = 64;
 
     
 
-# 变量
+## 变量
 
 ```java
  // 当前哈希表中元素个数
@@ -417,9 +417,9 @@ final float loadFactor;
 
     
 
-# 静态内部类
+## 静态内部类
 
-## Class Node
+### Class Node
 
 桶即table数组，table数组中的每一个元素就是一个Node链表
 
@@ -467,9 +467,9 @@ static class Node<K,V> implements Map.Entry<K,V> {
 
     
 
-# 构造函数
+## 构造函数
 
-## 1号构造
+### 1号构造
 
 传入initialCapacity、loadFactor
 
@@ -507,7 +507,7 @@ public HashMap(int initialCapacity, float loadFactor) {
 
       
 
-### tableSizeFor()函数
+#### tableSizeFor()函数
 
 ```java
 /**
@@ -524,7 +524,7 @@ static final int tableSizeFor(int cap) {
 
     
 
-### Integer.numberOfLeadingZeros(int i)
+#### Integer.numberOfLeadingZeros(int i)
 
 ```java
 /**
@@ -584,7 +584,7 @@ public static int numberOfLeadingZeros(int i) {
 
     
 
-## 2号构造
+### 2号构造
 
 传入initialCapacity
 
@@ -605,7 +605,7 @@ public HashMap(int initialCapacity) {
 
     
 
-## 3号构造
+### 3号构造
 
 啥都不传
 
@@ -621,7 +621,7 @@ public HashMap() {
 
     
 
-## 4号构造
+### 4号构造
 
 传入一个map
 
@@ -643,7 +643,7 @@ public HashMap(Map<? extends K, ? extends V> m) {
 
     
 
-# put(K,V)函数
+## put(K,V)函数
 
 ```java
 /**
@@ -769,7 +769,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
 
     
 
-# 扩容函数resize()
+## 扩容函数resize()
 
 ```java
 // 为什么需要扩容？
@@ -917,9 +917,9 @@ final Node<K,V>[] resize() {
 
     
 
-# 红黑树函数
+## 红黑树函数
 
-## treeifyBin(Node, int)
+### treeifyBin(Node, int)
 
 ```java
 /**
@@ -964,9 +964,9 @@ final void treeifyBin(Node<K,V>[] tab, int hash) {
 
 原文链接：https://blog.csdn.net/weixin_42340670/article/details/80503863
 
+    
 
-
-## treeify(Node)
+### treeify(Node)
 
 ```java
 /**
