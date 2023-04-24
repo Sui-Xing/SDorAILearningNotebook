@@ -1,4 +1,4 @@
-# **一、 Java面向对象有哪些特征，如何应用**
+# 一、 Java面向对象有哪些特征，如何应用
 
 面向对象编程是利用类和对象编程的一种思想。
 
@@ -8,7 +8,11 @@
 - 继承是父类和子类的关系
 - 多态说的是类与类的关系
 
-多态：父类引用指向子类对象。
+多态：<u>它是指在父类中定义的属性和方法被子类继承之后，可以具有不同的数据类型或表现出不同的行为，这使得同一个属性或方法在父类及其各个子类中具有不同的含义。</u>
+
+
+
+
 
 # 二、 ArrayList和LinkedList有什么区别
 
@@ -19,6 +23,10 @@ ArrayList和LinkedList都实现了List接口，他们有以下的不同点：
 | 是基于索引的数据接口，它的底层是数组。它可以以O(1)时间复杂度对元素进行随机访问。 | 是以元素列表的形式存储它的数据，每一个元素都和它的前一个和后一个元素链接在一起，在这种情况下，查找某个元素的时间复杂度是O(n) |
 |                                            | 插入，添加，删除操作速度更快更占内存                                               |
 
+
+
+
+
 # 三、 高并发中的集合有哪些问题
 
 **第一代线程安全集合类**
@@ -28,6 +36,8 @@ Vector、Hashtable
 是怎么保证线程安排的： 使用synchronized修饰方法*
 
 缺点：效率低下
+
+
 
 **第二代线程非安全集合类**
 
@@ -41,25 +51,55 @@ ArrayList、HashMap
 
 底层使用synchronized代码块锁 虽然也是锁住了所有的代码，但是锁在方法里边，并所在方法外边性能可以理解为稍有提高吧。毕竟进方法本身就要分配资源的
 
+
+
 **第三代线程安全集合类**
 
 在大量并发情况下如何提高集合的效率和安全呢？
 
-java.util.concurrent.*
+**java.util.concurrent.***
 
-ConcurrentHashMap：
+1. **ConcurrentHashMap**：Concurrent  /kənˈkʌr.ənt/ 是并发的意思。
 
-CopyOnWriteArrayList ：
+2. **CopyOnWriteArrayList** ：
 
-CopyOnWriteArraySet： 注意 不是CopyOnWriteHashSet*
+3. **CopyOnWriteArraySet**： 注意 不是CopyOnWriteHashSet*
 
 底层大都采用Lock锁（1.8的ConcurrentHashMap不使用Lock锁），保证安全的同时，性能也很高。
+
+CopyOnWrite 是一种读写分离的策略，它通过在写操作时复制一份原数据，然后在新数据上进行写操作，从而避免了对原数据的修改，保证了读操作的线程安全性。具体来说，当要进行写操作时，CopyOnWrite 容器会先将原数据复制一份，然后在新数据上进行写操作，写操作完成后再将原数据替换为新数据。这样做的好处是，读操作可以无锁地进行，因为读操作不会对原数据进行修改。
+
+CopyOnWrite 容器一般用于读多写少的场景，比如缓存、读取频繁但修改很少的数据等。在这些场景下，CopyOnWrite 容器可以提高读取性能，同时保证写操作的线程安全性。
+
+
 
 ## ConcurrentHashMap
 
 ### jdk7:
 
-数据结构：ReentrantLock+Segment+HashEntry
+**ReentrantLock**是 Java 提供的一种可重入的互斥锁，它可以用来保护临界区，避免多个线程同时访问共享资源而导致的数据不一致或者死锁等问题。
+
+ReentrantLock 与 synchronized 相比，有以下几个优点：
+
+1. 可以实现公平锁和非公平锁：
+
+2. ReentrantLock 提供了构造方法可以指定锁是公平锁还是非公平锁，默认是非公平锁。
+
+3. 可以中断等待锁的线程：当一个线程长时间等待锁时，可以通过调用该线程的 interrupt() 方法来中断等待，从而避免死锁。
+
+4. 可以实现多个条件变量：ReentrantLock 提供了 Condition 接口，可以用来实现多个条件变量，从而使得不同的线程可以等待不同的条件。
+
+5. 支持可重入性：同一个线程可以多次获取同一个 ReentrantLock 锁，从而避免了死锁的发生。
+
+
+
+**Segment** 是 ConcurrentHashMap 中的一个重要概念，它是由 Doug Lea 在设计 ConcurrentHashMap 时引入的一种分段锁机制，用于提高 ConcurrentHashMap 的并发性能。
+
+在 ConcurrentHashMap 中，整个数据集被分成多个 Segment，segment继承自ReentrantLock，每个 Segment 内部维护一个 Hash 表，不同的线程在访问不同的 Segment 时，是不会发生锁竞争的。每个 Segment 内部的元素访问是通过 ReentrantLock 锁实现的，但是不同的 Segment 之间并没有共享的状态或资源，因此不同线程在访问不同 Segment 的时候，不会产生锁竞争和性能瓶颈。
+
+
+
+**数据结构：ReentrantLock+Segment+HashEntry**
 
 分段锁
 
@@ -71,13 +111,33 @@ CopyOnWriteArraySet： 注意 不是CopyOnWriteHashSet*
 
 元素查询：两次hash，第一次hash定位到segment，第二次hash定位到元素所在的链表头部。
 
-get()方法无需枷锁，volatile保证
+get()方法无需枷锁，
 
-segment继承自ReentrantLock
+
+
+
+
+
 
 ### jdk8:
 
-数据结构：synchronized+CAS+Node+红黑树
+**volatile** 是一种关键字，用于修饰变量。当变量被 volatile 修饰时，保证了下面两个特性：
+
+1. 可见性：当一个线程修改了一个 volatile 变量的值时，其他线程可以立即看到这个变量的最新值。这是由于 volatile 变量的值存储在主内存中，每个线程读取变量的值时都从主内存中读取，从而避免了缓存一致性的问题。
+
+2. 禁止重排序：当一个线程对一个 volatile 变量进行写操作时，JVM 会保证该操作不会和其他指令重排序。这可以保证 volatile 变量的赋值操作是原子性的，从而避免了多线程环境下可能出现的线程安全问题。
+
+
+
+**CAS**（Compare and Swap）是一种基于原子操作的并发算法，用于实现无锁的线程安全编程。CAS 操作包括三个操作数：内存位置（V）、期望值（A）和新值（B）。当需要更新内存位置 V 的值时，CAS 会先比较内存位置 V 的当前值是否等于期望值 A，如果相等，则将内存位置 V 的值设置为新值 B，否则不进行任何操作。整个 CAS 操作是原子性的，因此能够保证线程安全。
+
+在 Java 中，CAS 操作通常是通过 java.util.concurrent.atomic 包中的 AtomicXXX 类来实现的，其中 XXX 可以是 Integer、Long、Boolean 等基本类型。这些类提供了一系列原子操作，包括 get、set、compareAndSet 等方法，可以保证在多线程环境下，对于同一个变量的操作是线程安全的。
+
+需要注意的是，虽然 CAS 操作可以实现无锁的线程安全编程，但是它也存在一些限制和缺陷。其中最主要的就是 ABA 问题，即当一个变量从 A 变为 B，再从 B 变回 A 时，CAS 操作可能会误判为没有发生变化，从而导致线程安全问题。为了解决 ABA 问题，Java 提供了 AtomicStampedReference 和 AtomicMarkableReference 等类，可以通过增加版本号或者标记位来解决该问题。
+
+
+
+**数据结构：synchronized+CAS+Node+红黑树**
 
 Node的val和next都用volatile修饰，保证可见性
 
@@ -91,15 +151,23 @@ Node的val和next使用volatile修饰，读写线程对该变量互相可见
 
 数组用volatile修饰，保证扩容时被读线程感知。
 
+
+
+
+
 # 四、JDK1.8的新特性有哪些
 
 ### 1. 接口的默认方法
 
-Java 8允许我们给接口添加一个非抽象的方法实现，只需要使用 default关键字即可，这个特征又叫做扩展方法
+JDK 1.8 中允许接口中包含默认方法和静态方法，这使得接口可以更加灵活地扩展和演化。默认方法可以为接口提供一个默认的实现，从而避免了所有实现类都需要实现该方法的问题；静态方法可以为接口提供一些辅助方法，从而使得接口更加丰富和实用。
 
 ### 2. Lambda 表达式
 
+Lambda 表达式是 JDK 1.8 中最为重要的新特性之一，它可以简化代码，提高代码可读性。Lambda 表达式是一种匿名函数，它可以作为参数传递，也可以作为返回值返回。Lambda 表达式的语法非常简洁，可以用于实现函数式编程。
+
 ### 3. 函数式接口
+
+JDK 1.8 中引入了函数式接口的概念，它是一种只包含一个抽象方法的接口，可以用于实现 Lambda 表达式和方法引用。函数式接口可以提高代码的可读性和可维护性，是实现函数式编程的基础。
 
 ### 4. 方法与构造函数引用
 
@@ -112,6 +180,8 @@ Java 8允许我们给接口添加一个非抽象的方法实现，只需要使�
 ### 8. 访问接口的默认方法
 
 ### 9. Date API
+
+JDK 1.8 中引入了全新的 Date/Time API，提供了一组新的日期和时间类，可以更加方便地处理日期和时间。新的 Date/Time API 支持时区、日历、闰年等复杂的时间操作，同时也提供了一些方便的方法，可以使得代码更加简洁和易于理解。    
 
 ### 10. Annotation 注解(多重注解)
 
