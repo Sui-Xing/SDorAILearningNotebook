@@ -71,11 +71,11 @@ CopyOnWrite 容器一般用于读多写少的场景，比如缓存、读取频�
 
 ***
 
-## ConcurrentHashMap
+## 3.1 ConcurrentHashMap
 
-### jdk7:
+### 3.1.1 JDK-7
 
-**ReentrantLock**是 Java 提供的一种可重入的互斥锁，它可以用来保护临界区，避免多个线程同时访问共享资源而导致的数据不一致或者死锁等问题。
+1） **ReentrantLock**是 Java 提供的一种可重入的互斥锁，它可以用来保护临界区，避免多个线程同时访问共享资源而导致的数据不一致或者死锁等问题。
 
 ReentrantLock 与 synchronized 相比，有以下几个优点：
 
@@ -91,15 +91,15 @@ ReentrantLock 与 synchronized 相比，有以下几个优点：
 
       
 
-
-
-**Segment** 是 ConcurrentHashMap 中的一个重要概念，它是由 Doug Lea 在设计 ConcurrentHashMap 时引入的一种分段锁机制，用于提高 ConcurrentHashMap 的并发性能。
+2） **Segment** 是 ConcurrentHashMap 中的一个重要概念，它是由 Doug Lea 在设计 ConcurrentHashMap 时引入的一种分段锁机制，用于提高 ConcurrentHashMap 的并发性能。
 
 在 ConcurrentHashMap 中，整个数据集被分成多个 Segment，segment继承自ReentrantLock，每个 Segment 内部维护一个 Hash 表，不同的线程在访问不同的 Segment 时，是不会发生锁竞争的。每个 Segment 内部的元素访问是通过 ReentrantLock 锁实现的，但是不同的 Segment 之间并没有共享的状态或资源，因此不同线程在访问不同 Segment 的时候，不会产生锁竞争和性能瓶颈。
 
+    
 
+**数据结构**
 
-**数据结构：ReentrantLock+Segment+HashEntry**
+**ReentrantLock+Segment+HashEntry**
 
 分段锁
 
@@ -111,29 +111,27 @@ ReentrantLock 与 synchronized 相比，有以下几个优点：
 
 元素查询：两次hash，第一次hash定位到segment，第二次hash定位到元素所在的链表头部。
 
-get()方法无需枷锁，
+get()方法无需枷锁，    
+
+    
 
 
 
+### 3.1.2 JDK-8
 
-
-
-
-### jdk8:
-
-**volatile** 是一种关键字，用于修饰变量。当变量被 volatile 修饰时，保证了下面两个特性：
+1） **volatile** 是一种关键字，用于修饰变量。当变量被 volatile 修饰时，保证了下面两个特性：
 
 1. 可见性：当一个线程修改了一个 volatile 变量的值时，其他线程可以立即看到这个变量的最新值。这是由于 volatile 变量的值存储在主内存中，每个线程读取变量的值时都从主内存中读取，从而避免了缓存一致性的问题。
 
 2. 禁止重排序：当一个线程对一个 volatile 变量进行写操作时，JVM 会保证该操作不会和其他指令重排序。这可以保证 volatile 变量的赋值操作是原子性的，从而避免了多线程环境下可能出现的线程安全问题。
 
+    
 
-
-**CAS**（Compare and Swap）是一种基于原子操作的并发算法，用于实现无锁的线程安全编程。CAS 操作包括三个操作数：内存位置（V）、期望值（A）和新值（B）。当需要更新内存位置 V 的值时，CAS 会先比较内存位置 V 的当前值是否等于期望值 A，如果相等，则将内存位置 V 的值设置为新值 B，否则不进行任何操作。整个 CAS 操作是原子性的，因此能够保证线程安全。
+2） **CAS**（Compare and Swap）是一种基于原子操作的并发算法，用于实现无锁的线程安全编程。CAS 操作包括三个操作数：内存位置（V）、期望值（A）和新值（B）。当需要更新内存位置 V 的值时，CAS 会先比较内存位置 V 的当前值是否等于期望值 A，如果相等，则将内存位置 V 的值设置为新值 B，否则不进行任何操作。整个 CAS 操作是原子性的，因此能够保证线程安全。
 
 在 Java 中，CAS 操作通常是通过 java.util.concurrent.atomic 包中的 AtomicXXX 类来实现的，其中 XXX 可以是 Integer、Long、Boolean 等基本类型。这些类提供了一系列原子操作，包括 get、set、compareAndSet 等方法，可以保证在多线程环境下，对于同一个变量的操作是线程安全的。
 
-需要注意的是，虽然 CAS 操作可以实现无锁的线程安全编程，但是它也存在一些限制和缺陷。其中最主要的就是 ABA 问题，即当一个变量从 A 变为 B，再从 B 变回 A 时，CAS 操作可能会误判为没有发生变化，从而导致线程安全问题。为了解决 ABA 问题，Java 提供了 AtomicStampedReference 和 AtomicMarkableReference 等类，可以通过增加版本号或者标记位来解决该问题。
+需要注意的是，虽然 CAS 操作可以实现无锁的线程安全编程，但是它也存在一些限制和缺陷。其中最主要的就是 ABA 问题，即当一个变量从 A 变为 B，再从 B 变回 A 时，CAS 操作可能会误判为没有发生变化，从而导致线程安全问题。为了解决 ABA 问题，Java 提供了 AtomicStampedReference 和 AtomicMarkableReference 等类，可以通过增加版本号或者标记位来解决该问题。    
 
 
 
@@ -150,10 +148,6 @@ Node的val和next都用volatile修饰，保证可见性
 Node的val和next使用volatile修饰，读写线程对该变量互相可见
 
 数组用volatile修饰，保证扩容时被读线程感知。
-
-
-
-
 
 # 四、JDK1.8的新特性有哪些
 
