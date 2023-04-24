@@ -255,7 +255,7 @@ public class functinalTest {
 
 JDK 1.8 中引入了全新的 Date/Time API，提供了一组新的日期和时间类，可以更加方便地处理日期和时间。新的 Date/Time API 支持时区、日历、闰年等复杂的时间操作，同时也提供了一些方便的方法，可以使得代码更加简洁和易于理解。    
 
-### 10. 注解相关的新特性
+### 4.10  注解相关的新特性
 
 Java SE 8中没有引入新的注解类型，但是它扩展了注解的用途，例如支持在接口中声明默认方法和静态方法，以及在Lambda表达式中使用注解。
 
@@ -283,6 +283,8 @@ Java SE 8中没有引入新的注解类型，但是它扩展了注解的用途�
 
 7.一个类只能继承一个抽象类
 
+    
+
 接口：
 
 1.接口中不能定义构造器
@@ -309,6 +311,10 @@ Java SE 8中没有引入新的注解类型，但是它扩展了注解的用途�
 
 接口一般是指一类事物具有的共同特征（会飞的）
 
+    
+
+
+
 # HashMap原理
 
 ![](http://fastly.jsdelivr.net/gh/Sui-Xing/Figurebed//img/2023/04/18/20230418114738.png)
@@ -318,3 +324,713 @@ hashcode1与hashcode2在oldthreshold大小中 hash值是一样的，因此在一
 但 在newThr中，由于两个hashcode的第5位不同，因此&上newThr的hash也不同，因此在旧表中一条链上的两个值在新表中分别会在两个链上，这两个链的hash差了一个threshold
 
 即 000**1** 0101-000**0** 0101=0001 0000
+
+
+
+
+
+[TOC]
+
+![hashmap](https://gitee.com/JupiterLi/img-bed/raw/master/img/hashmap.png)
+
+    
+
+# 常量
+
+```java
+/**
+ * The default initial capacity - MUST be a power of two.
+ *
+ * 缺省table大小
+ */
+static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
+
+/**
+ * The maximum capacity, used if a higher value is implicitly specified
+ * by either of the constructors with arguments.
+ * MUST be a power of two <= 1<<30.
+ *
+ * table最大长度
+ */
+static final int MAXIMUM_CAPACITY = 1 << 30;
+
+/**
+ * The load factor used when none specified in constructor.
+ *
+ *  缺省负载因子大小
+ */
+static final float DEFAULT_LOAD_FACTOR = 0.75f;
+
+/**
+ * The bin count threshold for using a tree rather than list for a
+ * bin.  Bins are converted to trees when adding an element to a
+ * bin with at least this many nodes. The value must be greater
+ * than 2 and should be at least 8 to mesh with assumptions in
+ * tree removal about conversion back to plain bins upon
+ * shrinkage.
+ *
+ * 树化阈值
+ */
+static final int TREEIFY_THRESHOLD = 8;
+
+/**
+ * The bin count threshold for untreeifying a (split) bin during a
+ * resize operation. Should be less than TREEIFY_THRESHOLD, and at
+ * most 6 to mesh with shrinkage detection under removal.
+ *
+ * 树降级为链表的阈值
+ */
+static final int UNTREEIFY_THRESHOLD = 6;
+
+/**
+ * The smallest table capacity for which bins may be treeified.
+ * (Otherwise the table is resized if too many nodes in a bin.)
+ * Should be at least 4 * TREEIFY_THRESHOLD to avoid conflicts
+ * between resizing and treeification thresholds.
+ * 最小树形化容量阈值：即 当哈希表中的容量 > 该值时，才允许树形化链表 （即 将链表 转换成红黑树）
+ * 否则，若桶内元素太多时，则直接扩容，而不是树形化
+ * 为了避免进行扩容、树形化选择的冲突，这个值不能小于 4 * TREEIFY_THRESHOLD
+ */
+static final int MIN_TREEIFY_CAPACITY = 64;
+```
+
+    
+
+# 变量
+
+```java
+ // 当前哈希表中元素个数
+transient int size;
+
+
+ // 哈希表结构改变次数
+transient int modCount;
+
+
+ // 扩容阈值，当你的哈希表中的元素超过阈值时，触发扩容
+int threshold;
+
+
+ // 负载因子
+final float loadFactor;
+```
+
+    
+
+# 静态内部类
+
+## Class Node
+
+桶即table数组，table数组中的每一个元素就是一个Node链表
+
+```java
+static class Node<K,V> implements Map.Entry<K,V> {
+    final int hash;
+    final K key;
+    V value;
+    Node<K,V> next;
+
+    Node(int hash, K key, V value, Node<K,V> next) {
+        this.hash = hash;
+        this.key = key;
+        this.value = value;
+        this.next = next;
+    }
+
+    public final K getKey()        { return key; }
+    public final V getValue()      { return value; }
+    public final String toString() { return key + "=" + value; }
+
+    public final int hashCode() {
+        return Objects.hashCode(key) ^ Objects.hashCode(value);
+    }
+
+    public final V setValue(V newValue) {
+        V oldValue = value;
+        value = newValue;
+        return oldValue;
+    }
+
+    public final boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (o instanceof Map.Entry) {
+            Map.Entry<?,?> e = (Map.Entry<?,?>)o;
+            if (Objects.equals(key, e.getKey()) &&
+                    Objects.equals(value, e.getValue()))
+                return true;
+        }
+        return false;
+    }
+}
+```
+
+    
+
+# 构造函数
+
+## 1号构造
+
+传入initialCapacity、loadFactor
+
+```java
+/**
+ * Constructs an empty {@code HashMap} with the specified initial
+ * capacity and load factor.
+ * @param  initialCapacity the initial capacity
+ * @param  loadFactor      the load factor
+ * @throws IllegalArgumentException if the initial capacity is negative
+ *         or the load factor is nonpositive
+ */
+public HashMap(int initialCapacity, float loadFactor) {
+    // 如果传入初始容量小于0，则抛出异常
+    if (initialCapacity < 0)
+        throw new IllegalArgumentException("Illegal initial capacity: " +
+                initialCapacity);
+
+    // 如果传入的初始容量大于table表最大长度，则令初试容量等于最大长度
+    if (initialCapacity > MAXIMUM_CAPACITY)
+        initialCapacity = MAXIMUM_CAPACITY;
+
+    // 如果传入的负载因子小于等于0，或者为空，则抛异常
+    if (loadFactor <= 0 || Float.isNaN(loadFactor))
+        throw new IllegalArgumentException("Illegal load factor: " +
+                loadFactor);
+
+
+    this.loadFactor = loadFactor;
+
+    //将本对象的扩容阈值设置为大于 传入的初始容量的 最小2的次方数
+    this.threshold = tableSizeFor(initialCapacity);
+}
+```
+
+      
+
+### tableSizeFor()函数
+
+```java
+/**
+ * Returns a power of two size for the given target capacity.
+ *
+ * 通过位运算
+ * 返回一个大于cap的最小2的次方数
+ */
+static final int tableSizeFor(int cap) {
+    int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
+    return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+}
+```
+
+    
+
+### Integer.numberOfLeadingZeros(int i)
+
+```java
+/**
+ * Returns the number of zero bits preceding the highest-order
+ * ("leftmost") one-bit in the two's complement binary representation
+ * of the specified {@code int} value.  Returns 32 if the
+ * specified value has no one-bits in its two's complement representation,
+ * in other words if it is equal to zero.
+ *
+ * <p>Note that this method is closely related to the logarithm base 2.
+ * For all positive {@code int} values x:
+ * <ul>
+ * <li>floor(log<sub>2</sub>(x)) = {@code 31 - numberOfLeadingZeros(x)}
+ * <li>ceil(log<sub>2</sub>(x)) = {@code 32 - numberOfLeadingZeros(x - 1)}
+ * </ul>
+ *
+ * @param i the value whose number of leading zeros is to be computed
+ * @return the number of zero bits preceding the highest-order
+ *     ("leftmost") one-bit in the two's complement binary representation
+ *     of the specified {@code int} value, or 32 if the value
+ *     is equal to zero.
+ * @since 1.5
+ * 
+ * cap=6
+ * i=5
+ * BIN=...0000 0000 0000 0101
+ *     
+ */
+@HotSpotIntrinsicCandidate
+public static int numberOfLeadingZeros(int i) {
+    // HD, Count leading 0's
+    if (i <= 0)
+        return i == 0 ? 32 : 0;
+
+    // n =  0000 0000 0001 1111
+    int n = 31;
+
+    // 传入的i是否大于2的16次方， 
+    if (i >= 1 << 16) { n -= 16; i >>>= 16; }
+    if (i >= 1 <<  8) { n -=  8; i >>>=  8; }
+    if (i >= 1 <<  4) { n -=  4; i >>>=  4; }
+
+    // 传入的i是否大于2的2次方，如果是
+    // 则 n = 0000 0000 0001 1101，十进制为29
+    //    i = 0000 0000 0000 0001
+    if (i >= 1 <<  2) { n -=  2; i >>>=  2; }
+
+    // 返回  0000 0000 0001 1111，即29
+    // 在tableSizeFor()函数中，-1无符号右移29位，
+    // -1为4个字节，占32位，二进制是32个1,
+    // 无符号右移29位，剩下最右边3个1，即...0000 0111,即是7
+    // 最后得到结果8
+    return n - (i >>> 1);
+}
+
+```
+
+    
+
+## 2号构造
+
+传入initialCapacity
+
+```java
+/**
+ * Constructs an empty {@code HashMap} with the specified initial
+ * capacity and the default load factor (0.75).
+ *
+ * @param  initialCapacity the initial capacity.
+ * @throws IllegalArgumentException if the initial capacity is negative.
+ * 
+ * 套娃调用了1号构造
+ */
+public HashMap(int initialCapacity) {
+    this(initialCapacity, DEFAULT_LOAD_FACTOR);
+}
+```
+
+    
+
+## 3号构造
+
+啥都不传
+
+```java
+/**
+ * Constructs an empty {@code HashMap} with the default initial capacity
+ * (16) and the default load factor (0.75).
+ */
+public HashMap() {
+    this.loadFactor = DEFAULT_LOAD_FACTOR; // all other fields defaulted
+}
+```
+
+    
+
+## 4号构造
+
+传入一个map
+
+```java
+/**
+ * Constructs a new {@code HashMap} with the same mappings as the
+ * specified {@code Map}.  The {@code HashMap} is created with
+ * default load factor (0.75) and an initial capacity sufficient to
+ * hold the mappings in the specified {@code Map}.
+ *
+ * @param   m the map whose mappings are to be placed in this map
+ * @throws  NullPointerException if the specified map is null
+ */
+public HashMap(Map<? extends K, ? extends V> m) {
+    this.loadFactor = DEFAULT_LOAD_FACTOR;
+    putMapEntries(m, false);
+}
+```
+
+    
+
+# put(K,V)函数
+
+```java
+/**
+ * Associates the specified value with the specified key in this map.
+ * If the map previously contained a mapping for the key, the old
+ * value is replaced.
+ *
+ * @param key key with which the specified value is to be associated
+ * @param value value to be associated with the specified key
+ * @return the previous value associated with {@code key}, or
+ *         {@code null} if there was no mapping for {@code key}.
+ *         (A {@code null} return can also indicate that the map
+ *         previously associated {@code null} with {@code key}.)
+ */
+public V put(K key, V value) {
+    return putVal(hash(key), key, value, false, true);
+}
+```
+
+    
+
+## hash(Object)函数
+
+```java
+/**
+ * 让key的哈希值右移16位就是为了让高的16位和低位相亦或
+ * (如果这两个二进制位的值不同，则结果为1，否则结果为0)，
+ * 发挥作用，影响低位的值，
+ * 这样路由寻址table的index时，
+ * 能够让高16位也参与这个应该存放的位置（index）的计算
+ * 
+ * index的计算是(table.len-1)|hashcode_*
+ * 因为len-1的为2的倍数-1，所以为1111形式的，
+ * 前面的0经过与还是0，因此得到的index必小于len
+ */
+static final int hash(Object key) {
+    int h;
+    return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+}
+```
+
+    
+
+## putVal(int, K, V, boolean,boolean)函数
+
+```java
+/**
+ * Implements Map.put and related methods.
+ *
+ * @param hash hash for key
+ * @param key the key
+ * @param value the value to put
+ * @param onlyIfAbsent if true, don't change existing value
+ * @param evict if false, the table is in creation mode.
+ * @return previous value, or null if none
+ */
+final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+               boolean evict) {
+
+    // tab 表示引用当前hashmap的散列表，也就是一个Node数组，被需要put的Node数组赋值了
+    // p是指一个Node节点，也就是hasmap散列表（Node数组）里的一个链表（Node）
+    // n表示数组长度
+    // i表示路由寻址结果
+    Node<K,V>[] tab; Node<K,V> p; int n, i;
+
+    // 将需要put元素的table赋值给tab，将散列表（数组）的长度赋值给n
+    // 判断散列表是否为空或散列表长度是否为0，如果为真就为tab进行扩容
+    if ((tab = table) == null || (n = tab.length) == 0)
+        n = (tab = resize()).length;
+
+    // 将tab需要put的key对应的数组上的索引的Node链表赋值给p,将key对应的hash索引赋值给i
+    // 判断p是否为空,为空就直接将第i个空间赋值给
+    if ((p = tab[i = (n - 1) & hash]) == null)
+        tab[i] = newNode(hash, key, value, null);
+    else {
+        Node<K,V> e; K k;
+
+        // 如果索引碰撞了，而且需要put的node节点的hash值和table数组的索引i位置的node链表p（链表中第一个元素）的hash值一样，那么替换原位置的node
+        if (p.hash == hash &&
+                ((k = p.key) == key || (key != null && key.equals(k))))
+            e = p;
+
+        // 如果p的结构是红黑树，则、、、
+        else if (p instanceof TreeNode)
+            e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+        else {
+            // 如果p的结构是链表，而且链表的头节点与要put的节点不同
+            for (int binCount = 0; ; ++binCount) {
+                // 如果遍历到尾节点
+                if ((e = p.next) == null) {
+                    p.next = newNode(hash, key, value, null);
+
+                    if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                        // 因为上上面一行代码又添加了一个Node节点，所以此时该链表有9个节点
+                        treeifyBin(tab, hash);
+                    break;
+                }
+                // 如果hash值发生了碰撞，则进行下面的替换操作
+                if (e.hash == hash &&
+                        ((k = e.key) == key || (key != null && key.equals(k))))
+                    break;
+                p = e;
+            }
+        }
+
+        // 如果hash值碰撞了，就进行替换操作，将传进来的参数value赋值给链表中碰撞位置的node节点的value值
+        // 最后返回旧的value值
+        if (e != null) { // existing mapping for key
+            V oldValue = e.value;
+            if (!onlyIfAbsent || oldValue == null)
+                e.value = value;
+            afterNodeAccess(e);
+            return oldValue;
+        }
+    }
+    ++modCount;
+    if (++size > threshold)
+        resize();
+    afterNodeInsertion(evict);
+    return null;
+}     
+```
+
+    
+
+# 扩容函数resize()
+
+```java
+// 为什么需要扩容？
+// 为了解决hash值冲突导致的链化影响查询效率，最大时间复杂度为O(logN),即为红黑树的查找效率，
+// 扩容会缓解该问题
+
+// oldTab赋值为table
+final Node<K,V>[] resize() {
+    Node<K,V>[] oldTab = table;
+    int oldCap = (oldTab == null) ? 0 : oldTab.length;
+    int oldThr = threshold;
+    int newCap, newThr = 0;
+
+    // 如果进行扩容的table数组的容量（长度）大于0
+
+    if (oldCap > 0) {
+        // 如果table数组长度大于最大容量，扩容阈值直接等于整型最大值
+        if (oldCap >= MAXIMUM_CAPACITY) {
+            threshold = Integer.MAX_VALUE;
+            return oldTab;
+        }
+
+        // 旧的数组长度乘2等于新的数组长度，如果table数组长度乘2后小于最大值
+        // 且被扩容的table数组长度大于默认初始长度
+        // 那么新的扩容阈值就等于旧的扩容阈值乘2，也就是进行了新的表长度乘loadfactor的模糊操作，
+        // 该操作在oldCap < DEFAULT_INITIAL_CAPACITY时不精确
+        else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
+                oldCap >= DEFAULT_INITIAL_CAPACITY)
+            newThr = oldThr << 1; // double threshold
+    }
+
+    // 如果进行扩容的table数组的容量（长度）等于0，
+    // 且当此时的扩容阈值大于0时。此时的情况是构造hashmap时传入了初始table表长度（initcap），而表中又没有数据。
+    // 1.new Hashmap(initCap,loadFactor)
+    // 2.new Hashmap(loadFactor)
+    // 3.new Hashmap(map)
+    // 则将扩容后的表的长度设置为扩容阈值，此时的扩容阈值没有进行   表长度乘loadfactor的操作
+    else if (oldThr > 0) // initial capacity was placed in threshold
+        newCap = oldThr;
+
+        // 如果进行扩容的table数组的容量（长度）等于0，
+        // 且当此时的扩容阈值等于0时。也就是new HashMap()时
+        // 扩容后的表长度为默认长度，扩容后的表扩容阈值等于默认容量乘扩容阈值。
+    else {               // zero initial threshold signifies using defaults
+        newCap = DEFAULT_INITIAL_CAPACITY;
+        newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
+    }
+
+
+    // 1.new Hashmap(initCap,loadFactor)
+    // 2.new Hashmap(loadFactor)
+    // 3.new Hashmap(map)
+    // 4.当被扩容table数组的长度小于默认长度时
+    // 扩容后的表的扩容阈值为 扩容后表的长度乘loadfactor
+    if (newThr == 0) {
+        float ft = (float)newCap * loadFactor;
+        newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
+                (int)ft : Integer.MAX_VALUE);
+    }
+    threshold = newThr;
+    // 以上所有步骤都是为了确定应该扩容成多大的数组，以及扩容后数组的扩容阈值
+
+
+    // 为了建一个又长又大的数组
+    @SuppressWarnings({"rawtypes","unchecked"})
+    Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
+    table = newTab;
+
+
+    // oldTab != null说明本次扩容之前table不为null，table已经指向了一个数组
+    if (oldTab != null) {
+
+        // 便利table数组
+        for (int j = 0; j < oldCap; ++j) {
+
+            // table数组的每个元素的头节点赋值给e
+            Node<K,V> e;
+
+            // 如果这个头节点不为空
+            if ((e = oldTab[j]) != null) {
+                // 方便JVM GC时回收内存
+                oldTab[j] = null;
+
+                // 如果头节点e的指针指向下一个的地址为空
+                // 那么就直接令新表的头节点e对应的索引位置的元素为e
+                if (e.next == null)
+                    newTab[e.hash & (newCap - 1)] = e;
+
+                // 如果e是个树
+                else if (e instanceof TreeNode)
+                    ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
+
+                // 如果e是个链表
+                else { // preserve order
+
+                    // 对e链表进行拆分，分成扩容之后索引不变的，和索引改变的两条链表
+                    // 新建一个低位链表，该链表的hash值在newCap最高位位置上为0
+                    Node<K,V> loHead = null, loTail = null;
+                    // 新建一个低位链表，该链表的hash值在newCap最高位位置上为1，即该链表的节点在扩容后的索引位置是原索引位置 +oldCap
+                    Node<K,V> hiHead = null, hiTail = null;
+                    Node<K,V> next;
+                    do {
+
+
+                        next = e.next;
+                        // e的hash值与（&）上扩容前的数组长度，
+
+                        // 例如oldCap=16（1 0000）    e的hash值：...0 1100， 
+                        // & 之后的结果为...0 0000,此时为0，则该链表节点需要置到低位链表
+                        if ((e.hash & oldCap) == 0) {
+                            if (loTail == null)
+                                loHead = e;
+                            else
+                                loTail.next = e;
+                            loTail = e;
+                        }
+
+                        // 例如oldCap=16（1 0000）    e的hash值：...1 1100， 
+                        // & 之后的结果为...1 0000,此时不为0，则该链表节点需要置到高位链表
+                        else {
+                            if (hiTail == null)
+                                hiHead = e;
+                            else
+                                hiTail.next = e;
+                            hiTail = e;
+                        }
+                    } while ((e = next) != null);
+
+                    // 将高位与低位两个链表的尾节点的next设为空
+                    if (loTail != null) {
+                        loTail.next = null;
+                        newTab[j] = loHead;
+                    }
+                    if (hiTail != null) {
+                        hiTail.next = null;
+                        newTab[j + oldCap] = hiHead;
+                    }
+                }
+            }
+        }
+    }
+    return newTab;
+}
+```
+
+    
+
+# 红黑树函数
+
+## treeifyBin(Node, int)
+
+```java
+/**
+ * tab：元素数组，
+ * hash：hash值（要增加的键值对的key的hash值）
+ */
+final void treeifyBin(Node<K,V>[] tab, int hash) {
+
+    int n, index; Node<K,V> e;
+    /*
+     * 如果元素数组为空 或者 数组长度小于 树结构化的最小限制
+     * MIN_TREEIFY_CAPACITY 默认值64，对于这个值可以理解为：如果元素数组长度小于这个值，没有必要去进行结构转换
+     * 当一个数组位置上集中了多个键值对，那是因为这些key的hash值和数组长度取模之后结果相同。（并不是因为这些key的hash值相同）
+     * 因为hash值相同的概率不高，所以可以通过扩容的方式，来使得最终这些key的hash值在和新的数组长度取模之后，拆分到多个数组位置上。
+     */
+    if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
+        resize(); // 扩容，可参见resize方法解析
+
+    // 如果元素数组长度已经大于等于了 MIN_TREEIFY_CAPACITY，那么就有必要进行结构转换了
+    // 根据hash值和数组长度进行取模运算后，得到链表的首节点
+    else if ((e = tab[index = (n - 1) & hash]) != null) { 
+        TreeNode<K,V> hd = null, tl = null; // 定义首、尾节点
+        do { 
+            TreeNode<K,V> p = replacementTreeNode(e, null); // 将该节点转换为 树节点
+            if (tl == null) // 如果尾节点为空，说明还没有根节点
+                hd = p; // 首节点（根节点）指向 当前节点
+            else { // 尾节点不为空，以下两行是一个双向链表结构
+                p.prev = tl; // 当前树节点的 前一个节点指向 尾节点
+                tl.next = p; // 尾节点的 后一个节点指向 当前节点
+            }
+            tl = p; // 把当前节点设为尾节点
+        } while ((e = e.next) != null); // 继续遍历链表
+
+        // 到目前为止 也只是把Node对象转换成了TreeNode对象，把单向链表转换成了双向链表
+
+        // 把转换后的双向链表，替换原来位置上的单向链表
+        if ((tab[index] = hd) != null)
+            hd.treeify(tab);//此处单独解析
+    }
+}
+```
+
+原文链接：https://blog.csdn.net/weixin_42340670/article/details/80503863
+
+
+
+## treeify(Node)
+
+```java
+/**
+ * 参数为HashMap的元素数组
+ */
+final void treeify(Node<K,V>[] tab) {
+    TreeNode<K,V> root = null; // 定义树的根节点
+    for (TreeNode<K,V> x = this, next; x != null; x = next) { // 遍历链表，x指向当前节点、next指向下一个节点
+        next = (TreeNode<K,V>)x.next; // 下一个节点
+        x.left = x.right = null; // 设置当前节点的左右节点为空
+        if (root == null) { // 如果还没有根节点
+            x.parent = null; // 当前节点的父节点设为空
+            x.red = false; // 当前节点的红色属性设为false（把当前节点设为黑色）
+            root = x; // 根节点指向到当前节点
+        }
+        else { // 如果已经存在根节点了
+            K k = x.key; // 取得当前链表节点的key
+            int h = x.hash; // 取得当前链表节点的hash值
+            Class<?> kc = null; // 定义key所属的Class
+            for (TreeNode<K,V> p = root;;) { // 从根节点开始遍历，此遍历没有设置边界，只能从内部跳出
+                // GOTO1
+                int dir, ph; // dir 标识方向（左右）、ph标识当前树节点的hash值
+                K pk = p.key; // 当前树节点的key
+                if ((ph = p.hash) > h) // 如果当前树节点hash值 大于 当前链表节点的hash值
+                    dir = -1; // 标识当前链表节点会放到当前树节点的左侧
+                else if (ph < h)
+                    dir = 1; // 右侧
+
+                /*
+                 * 如果两个节点的key的hash值相等，那么还要通过其他方式再进行比较
+                 * 如果当前链表节点的key实现了comparable接口，并且当前树节点和链表节点是相同Class的实例，那么通过comparable的方式再比较两者。
+                 * 如果还是相等，最后再通过tieBreakOrder比较一次
+                 */
+                else if ((kc == null &&
+                            (kc = comparableClassFor(k)) == null) ||
+                            (dir = compareComparables(kc, k, pk)) == 0)
+                    dir = tieBreakOrder(k, pk);
+
+                TreeNode<K,V> xp = p; // 保存当前树节点
+
+                /*
+                 * 如果dir 小于等于0 ： 当前链表节点一定放置在当前树节点的左侧，但不一定是该树节点的左孩子，也可能是左孩子的右孩子 或者 更深层次的节点。
+                 * 如果dir 大于0 ： 当前链表节点一定放置在当前树节点的右侧，但不一定是该树节点的右孩子，也可能是右孩子的左孩子 或者 更深层次的节点。
+                 * 如果当前树节点不是叶子节点，那么最终会以当前树节点的左孩子或者右孩子 为 起始节点  再从GOTO1 处开始 重新寻找自己（当前链表节点）的位置
+                 * 如果当前树节点就是叶子节点，那么根据dir的值，就可以把当前链表节点挂载到当前树节点的左或者右侧了。
+                 * 挂载之后，还需要重新把树进行平衡。平衡之后，就可以针对下一个链表节点进行处理了。
+                 */
+                if ((p = (dir <= 0) ? p.left : p.right) == null) {
+                    x.parent = xp; // 当前链表节点 作为 当前树节点的子节点
+                    if (dir <= 0)
+                        xp.left = x; // 作为左孩子
+                    else
+                        xp.right = x; // 作为右孩子
+                    root = balanceInsertion(root, x); // 重新平衡
+                    break;
+                }
+            }
+        }
+    }
+
+    // 把所有的链表节点都遍历完之后，最终构造出来的树可能经历多个平衡操作，根节点目前到底是链表的哪一个节点是不确定的
+    // 因为我们要基于树来做查找，所以就应该把 tab[N] 得到的对象一定根节点对象，而目前只是链表的第一个节点对象，所以要做相应的处理。
+    moveRootToFront(tab, root); // 单独解析
+}
+```
+
+原文链接：https://blog.csdn.net/weixin_42340670/article/details/80531795
