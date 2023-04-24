@@ -703,7 +703,8 @@ static final int hash(Object key) {
 final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
                boolean evict) {
 
-    // tab 表示引用当前hashmap的散列表，也就是一个Node数组，被需要put的Node数组赋值了
+    // tab 表示引用当前hashmap的散列表，也就是一个Node数组，
+    // 被需要put的Node数组赋值了
     // p是指一个Node节点，也就是hasmap散列表（Node数组）里的一个链表（Node）
     // n表示数组长度
     // i表示路由寻址结果
@@ -714,14 +715,17 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
     if ((tab = table) == null || (n = tab.length) == 0)
         n = (tab = resize()).length;
 
-    // 将tab需要put的key对应的数组上的索引的Node链表赋值给p,将key对应的hash索引赋值给i
+    // 将tab需要put的key对应的数组上的索引的Node链表赋值给p,
+    // 将key对应的hash索引赋值给i
     // 判断p是否为空,为空就直接将第i个空间赋值给
     if ((p = tab[i = (n - 1) & hash]) == null)
         tab[i] = newNode(hash, key, value, null);
     else {
         Node<K,V> e; K k;
 
-        // 如果索引碰撞了，而且需要put的node节点的hash值和table数组的索引i位置的node链表p（链表中第一个元素）的hash值一样，那么替换原位置的node
+        // 如果索引碰撞了，
+        // 而且需要put的node节点的hash值和table数组的索引i位置
+        // 的node链表p（链表中第一个元素）的hash值一样，那么替换原位置的node
         if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
             e = p;
@@ -749,7 +753,8 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
             }
         }
 
-        // 如果hash值碰撞了，就进行替换操作，将传进来的参数value赋值给链表中碰撞位置的node节点的value值
+        // 如果hash值碰撞了，就进行替换操作，
+        // 将传进来的参数value赋值给链表中碰撞位置的node节点的value值
         // 最后返回旧的value值
         if (e != null) { // existing mapping for key
             V oldValue = e.value;
@@ -764,7 +769,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
         resize();
     afterNodeInsertion(evict);
     return null;
-}     
+}     
 ```
 
     
