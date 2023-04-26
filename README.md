@@ -32,3 +32,10 @@
 
 # SSM框架文档
 [mybatis学习笔记](https://github.com/Sui-Xing/Software-development/blob/main/%E5%90%8E%E7%AB%AF/SSM/Mybatis%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.md)
+
+# 重点题型
+springboot自动装配原来
+springMvc
+mysql+redis
+jvm内容区域划分
+单例
