@@ -14,11 +14,6 @@
 # Software-development
 
 软件开发程序
-
-# 算法文档
-
-[左神算法笔记](https://github.com/Sui-Xing/Software-development/blob/main/%E7%AE%97%E6%B3%95/%E7%AE%97%E6%B3%95%E9%A2%98%E7%AC%94%E8%AE%B0.md)
-
 # MySql
 [MySQL基础](https://github.com/Sui-Xing/Software-development/blob/main/%E5%90%8E%E7%AB%AF/mysql%E5%9F%BA%E7%A1%80.md)
 
@@ -39,3 +34,10 @@ springMvc
 mysql+redis
 jvm内容区域划分
 单例
+# 算法文档
+
+[左神算法笔记](https://github.com/Sui-Xing/Software-development/blob/main/%E7%AE%97%E6%B3%95/%E7%AE%97%E6%B3%95%E9%A2%98%E7%AC%94%E8%AE%B0.md)
+
+# AI
+$A_b$
+
